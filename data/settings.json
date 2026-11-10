@@ -1,0 +1,6 @@
+{
+  "header_format": "{code} + ",
+  "story_format": "{story}",
+  "auto_clean_ads": true,
+  "max_desc_length": 3000
+}

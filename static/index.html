@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>StoryPrompt Studio - Tool Ghép Prompt Ảnh Từ Link Truyện</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        brand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <link rel="stylesheet" href="/static/style.css">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col font-sans antialiased selection:bg-sky-200">
+
+    <!-- Header Navigation -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm backdrop-blur-md bg-white/90">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-sky-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-sky-500/20">
+                    <i data-lucide="sparkles" class="w-5 h-5"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-slate-900 leading-tight">StoryPrompt Studio</h1>
+                    <p class="text-xs text-slate-500">Tự động lấy ~500 chữ Chương 1 & ghép Prompt ChatGPT / AI Image</p>
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <nav class="flex items-center space-x-1 sm:space-x-2 bg-slate-100 p-1 rounded-xl">
+                <button id="tabBtnGenerator" onclick="switchTab('generator')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 bg-white text-sky-700 shadow-sm">
+                    <i data-lucide="wand-2" class="w-4 h-4"></i>
+                    <span>Tạo Prompt</span>
+                </button>
+                <button id="tabBtnSettings" onclick="switchTab('settings')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="settings" class="w-4 h-4"></i>
+                    <span>Cài Đặt Prompt Mẫu</span>
+                </button>
+                <button id="tabBtnGuide" onclick="switchTab('guide')" class="tab-btn px-4 py-2 rounded-lg text-sm font-medium transition-all flex items-center space-x-2 text-slate-600 hover:text-slate-900">
+                    <i data-lucide="help-circle" class="w-4 h-4"></i>
+                    <span>Hướng Dẫn</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Container -->
+    <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+        <!-- TAB 1: GENERATOR -->
+        <section id="tabGenerator" class="space-y-6">
+            
+            <!-- Input Card -->
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+                <div class="p-5 sm:p-6 border-b border-slate-100 bg-gradient-to-r from-slate-50 to-white flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="list-plus" class="w-5 h-5 text-sky-600"></i>
+                            Nhập Danh Sách: Mã Truyện | Link Truyện
+                        </h2>
+                        <p class="text-xs sm:text-sm text-slate-500 mt-0.5">Hỗ trợ dán nhiều dòng, phân cách bởi dấu gạch đứng <code class="bg-slate-200 px-1 py-0.5 rounded text-slate-800">|</code> hoặc tab</p>
+                    </div>
+
+                    <div class="flex items-center flex-wrap gap-2">
+                        <!-- Mode toggle buttons -->
+                        <div class="bg-slate-200/80 p-0.5 rounded-lg flex text-xs font-semibold">
+                            <button id="modeBulkBtn" onclick="setInputMode('bulk')" class="px-3 py-1.5 rounded-md bg-white text-slate-800 shadow-xs">Dán hàng loạt</button>
+                            <button id="modeTableBtn" onclick="setInputMode('table')" class="px-3 py-1.5 rounded-md text-slate-600 hover:text-slate-900">Nhập bảng</button>
+                        </div>
+
+                        <!-- Sample Data Button -->
+                        <button onclick="fillSampleData()" class="text-xs bg-sky-50 text-sky-700 hover:bg-sky-100 border border-sky-200 font-medium px-3 py-1.5 rounded-lg transition-colors flex items-center gap-1.5">
+                            <i data-lucide="flask-conical" class="w-3.5 h-3.5"></i>
+                            Dữ liệu mẫu
+                        </button>
+                        
+                        <!-- Upload TXT file button -->
+                        <label class="text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 font-medium px-3 py-1.5 rounded-lg transition-colors cursor-pointer flex items-center gap-1.5">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            Tải file .txt / .csv
+                            <input type="file" id="bulkFileInput" accept=".txt,.csv" class="hidden" onchange="handleBulkFileUpload(event)">
+                        </label>
+                    </div>
+                </div>
+
+                <div class="p-5 sm:p-6 space-y-4">
+                    <!-- Bulk Mode Content -->
+                    <div id="bulkInputContainer">
+                        <textarea id="rawInput" rows="7" 
+                            class="w-full font-mono text-sm p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-sky-500 focus:border-sky-500 outline-none transition shadow-inner bg-slate-50/50"
+                            placeholder="Mã truyện 1 | Link truyện 1&#10;Mã truyện 2 | Link truyện 2&#10;TRUYEN01 | https://dtruyen.com/...&#10;TRUYEN02 | https://truyenfull.io/..."></textarea>
+                    </div>
+
+                    <!-- Table Mode Content (Hidden by default) -->
+                    <div id="tableInputContainer" class="hidden space-y-3">
+                        <div class="overflow-x-auto border border-slate-200 rounded-xl">
+                            <table class="w-full text-left text-sm">
+                                <thead class="bg-slate-100 text-slate-600 font-semibold text-xs uppercase border-b border-slate-200">
+                                    <tr>
+                                        <th class="py-2.5 px-3 w-12 text-center">#</th>
+                                        <th class="py-2.5 px-3 w-1/4">Mã Truyện</th>
+                                        <th class="py-2.5 px-3">Link Truyện (URL)</th>
+                                        <th class="py-2.5 px-3 w-16 text-center">Xóa</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="tableRowsBody" class="divide-y divide-slate-200">
+                                    <!-- Dynamic Rows -->
+                                </tbody>
+                            </table>
+                        </div>
+                        <button onclick="addTableRow()" class="text-xs font-semibold text-sky-600 hover:text-sky-700 flex items-center gap-1">
+                            <i data-lucide="plus-circle" class="w-4 h-4"></i> Thêm dòng mới
+                        </button>
+                    </div>
+
+                    <!-- Options Bar & Actions -->
+                    <div class="pt-2 flex flex-col md:flex-row md:items-center justify-between gap-4 border-t border-slate-100">
+                        <div class="flex flex-wrap items-center gap-3 text-xs text-slate-600">
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium">Ghép mã truyện:</span>
+                                <select id="headerFmtSelect" onchange="onFormatChange()" class="border border-slate-300 rounded-lg px-2 py-1 bg-white text-slate-700 outline-none focus:ring-1 focus:ring-sky-500">
+                                    <option value="{code} + \n">{Mã truyện} + [Xuống dòng]</option>
+                                    <option value="{code}\n\n">{Mã truyện} [Cách 2 dòng]</option>
+                                    <option value="{code} - ">{Mã truyện} - [Prompt]</option>
+                                </select>
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                <span class="font-medium">Chèn Chương 1 sau Story:</span>
+                                <select id="storyFmtSelect" onchange="onFormatChange()" class="border border-slate-300 rounded-lg px-2 py-1 bg-white text-slate-700 outline-none focus:ring-1 focus:ring-sky-500">
+                                    <option value="\n{story}">\n{Nội dung Chương 1}</option>
+                                    <option value=" {story}"> [Khoảng cách] {Nội dung Chương 1}</option>
+                                    <option value="\n+ {story}">\n+ {Nội dung Chương 1}</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <button onclick="clearAllData()" class="px-4 py-2.5 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-100 font-medium text-sm transition flex items-center gap-1.5">
+                                <i data-lucide="trash-2" class="w-4 h-4"></i>
+                                Xóa hết
+                            </button>
+                            <button id="startProcessBtn" onclick="startBatchProcessing()" class="px-6 py-2.5 rounded-xl bg-gradient-to-r from-sky-600 to-indigo-600 hover:from-sky-500 hover:to-indigo-500 text-white font-semibold text-sm shadow-md shadow-sky-600/25 transition-all flex items-center gap-2 transform active:scale-98">
+                                <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+                                <span>Lấy Chương 1 & Tạo Prompt</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Loading & Progress Bar (Hidden by default) -->
+            <div id="progressContainer" class="hidden bg-white p-5 rounded-2xl shadow-sm border border-sky-100 space-y-3">
+                <div class="flex items-center justify-between text-sm font-medium">
+                    <span id="progressText" class="text-sky-700 flex items-center gap-2">
+                        <svg class="animate-spin h-4 w-4 text-sky-600" viewBox="0 0 24 24">
+                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z"></path>
+                        </svg>
+                        Đang lấy nội dung ~500 chữ Chương 1 từ link truyện...
+                    </span>
+                    <span id="progressPercent" class="text-slate-500 text-xs font-semibold">0%</span>
+                </div>
+                <div class="w-full bg-slate-100 h-2.5 rounded-full overflow-hidden">
+                    <div id="progressBar" class="bg-gradient-to-r from-sky-500 to-indigo-600 h-full rounded-full transition-all duration-300" style="width: 0%"></div>
+                </div>
+            </div>
+
+            <!-- Results Section -->
+            <div id="resultsSection" class="space-y-4 hidden">
+                <!-- Summary & Global Actions Toolbar -->
+                <div class="bg-white p-4 sm:p-5 rounded-2xl shadow-sm border border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
+                            <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-slate-800">Kết quả tạo Prompt</h3>
+                            <div class="text-xs text-slate-500 flex items-center gap-2 mt-0.5">
+                                <span>Tổng cộng: <strong id="statTotal" class="text-slate-700">0</strong></span>
+                                <span>•</span>
+                                <span class="text-emerald-600 font-semibold">Thành công: <span id="statSuccess">0</span></span>
+                                <span>•</span>
+                                <span class="text-rose-500 font-semibold">Cần chú ý / Nhập tay: <span id="statError">0</span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Batch Export / Copy buttons -->
+                    <div class="flex items-center flex-wrap gap-2">
+                        <button onclick="copyAllPrompts()" id="copyAllBtn" class="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-semibold text-xs shadow-sm transition flex items-center gap-1.5">
+                            <i data-lucide="copy" class="w-4 h-4"></i>
+                            <span>Copy TẤT CẢ Prompt</span>
+                        </button>
+                        <button onclick="exportAsTxt()" class="px-3.5 py-2 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-medium text-xs transition flex items-center gap-1.5">
+                            <i data-lucide="download" class="w-4 h-4 text-slate-500"></i>
+                            Tải file .TXT
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Generated Prompts List -->
+                <div id="promptsList" class="space-y-4">
+                    <!-- Cards injected here -->
+                </div>
+            </div>
+
+        </section>
+
+        <!-- TAB 2: SETTINGS & TEMPLATE PROMPT -->
+        <section id="tabSettings" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 space-y-6">
+                <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+                    <div>
+                        <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+                            <i data-lucide="sliders" class="w-5 h-5 text-indigo-600"></i>
+                            Cài Đặt Prompt Mẫu Toàn Cục
+                        </h2>
+                        <p class="text-sm text-slate-500 mt-1">Prompt mẫu này sẽ được lưu cố định và tự động áp dụng chung cho mọi yêu cầu ghép truyện.</p>
+                    </div>
+
+                    <div class="flex items-center flex-wrap gap-2">
+                        <!-- Upload prompt file -->
+                        <label class="text-xs bg-indigo-50 text-indigo-700 hover:bg-indigo-100 border border-indigo-200 font-medium px-3.5 py-2 rounded-xl transition cursor-pointer flex items-center gap-1.5">
+                            <i data-lucide="upload-cloud" class="w-4 h-4"></i>
+                            Tải lên file prompt (.txt)
+                            <input type="file" id="templateFileInput" accept=".txt" class="hidden" onchange="handleTemplateUpload(event)">
+                        </label>
+                        <!-- Reset to default -->
+                        <button onclick="resetDefaultTemplate()" class="text-xs bg-slate-100 text-slate-700 hover:bg-slate-200 border border-slate-200 font-medium px-3.5 py-2 rounded-xl transition flex items-center gap-1.5">
+                            <i data-lucide="rotate-ccw" class="w-4 h-4"></i>
+                            Khôi phục mặc định
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Template Textarea -->
+                <div class="space-y-2">
+                    <div class="flex items-center justify-between">
+                        <label class="text-xs font-semibold uppercase tracking-wider text-slate-600">Nội Dung Prompt Mẫu</label>
+                        <span class="text-xs text-slate-400">Có thể dùng biến <code class="text-indigo-600 font-mono">{code}</code> hoặc <code class="text-indigo-600 font-mono">{story}</code></span>
+                    </div>
+                    <textarea id="templateEditor" rows="18" 
+                        class="w-full font-mono text-xs sm:text-sm p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none transition shadow-inner bg-slate-50/50 leading-relaxed"></textarea>
+                </div>
+
+                <!-- Extra Options -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-slate-100">
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700">Định dạng nối Mã Truyện phía trước ({code}):</label>
+                        <input type="text" id="settingHeaderFormat" class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500" value="{code} + \n">
+                        <p class="text-[11px] text-slate-500">Mặc định: <code class="text-indigo-600 font-mono">{code} + \n</code> (Sẽ ghép: Mã truyện + [Xuống dòng] + Prompt)</p>
+                    </div>
+
+                    <div class="space-y-1.5">
+                        <label class="text-xs font-semibold text-slate-700">Định dạng nối Mô Tả Truyện phía sau Story: ({story}):</label>
+                        <input type="text" id="settingStoryFormat" class="w-full text-xs font-mono px-3 py-2 border border-slate-300 rounded-lg outline-none focus:ring-1 focus:ring-indigo-500" value="\n{story}">
+                        <p class="text-[11px] text-slate-500">Mặc định: <code class="text-indigo-600 font-mono">\n{story}</code> (Sẽ xuống dòng sau Story: và chèn mô tả)</p>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between pt-4 border-t border-slate-100">
+                    <span id="saveStatus" class="text-xs font-medium text-emerald-600 hidden flex items-center gap-1">
+                        <i data-lucide="check" class="w-4 h-4"></i> Đã lưu cấu hình thành công!
+                    </span>
+                    <button onclick="saveTemplateSettings()" class="ml-auto px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white font-semibold text-sm shadow-md shadow-indigo-600/25 transition flex items-center gap-2">
+                        <i data-lucide="save" class="w-4 h-4"></i>
+                        <span>Lưu Thay Đổi Prompt Mẫu</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <!-- TAB 3: GUIDE -->
+        <section id="tabGuide" class="space-y-6 hidden">
+            <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 sm:p-8 space-y-6">
+                <div>
+                    <h2 class="text-xl font-bold text-slate-900 flex items-center gap-2">
+                        <i data-lucide="book-open" class="w-6 h-6 text-sky-600"></i>
+                        Hướng Dẫn Sử Dụng StoryPrompt Studio
+                    </h2>
+                    <p class="text-sm text-slate-500 mt-1">Cách vận hành công cụ và cấu trúc prompt đầu ra</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="w-8 h-8 rounded-lg bg-sky-100 text-sky-700 flex items-center justify-center font-bold text-sm">1</div>
+                        <h3 class="font-bold text-slate-800 text-sm">Nhập danh sách truyện</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Điền vào khung theo cú pháp: <br>
+                            <code class="bg-white px-1.5 py-0.5 rounded border border-slate-200 text-sky-800 font-semibold">Mã truyện | Link truyện</code><br>
+                            Mỗi truyện trên 1 dòng. Có thể dán hàng chục truyện cùng lúc hoặc tải file .txt lên.
+                        </p>
+                    </div>
+
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="w-8 h-8 rounded-lg bg-indigo-100 text-indigo-700 flex items-center justify-center font-bold text-sm">2</div>
+                        <h3 class="font-bold text-slate-800 text-sm">Tự động lấy mô tả</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Hệ thống tự động kết nối đến link truyện, trích xuất tóm tắt/nội dung giới thiệu và làm sạch các quảng cáo, lời chào dư thừa. Bạn có thể sửa trực tiếp mô tả trên bảng kết quả.
+                        </p>
+                    </div>
+
+                    <div class="p-5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
+                        <div class="w-8 h-8 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-sm">3</div>
+                        <h3 class="font-bold text-slate-800 text-sm">Sao chép Prompt</h3>
+                        <p class="text-xs text-slate-600 leading-relaxed">
+                            Bấm nút <strong class="text-emerald-700">Copy Prompt</strong> để sao chép từng prompt hoặc nút <strong class="text-emerald-700">Copy TẤT CẢ Prompt</strong> để dán trực tiếp vào ChatGPT hoặc công cụ AI tạo ảnh.
+                        </p>
+                    </div>
+                </div>
+
+                <div class="p-5 rounded-xl bg-sky-50 border border-sky-100 space-y-2">
+                    <h4 class="font-bold text-sky-900 text-sm flex items-center gap-1.5">
+                        <i data-lucide="info" class="w-4 h-4"></i>
+                        Cấu trúc Prompt đầu ra:
+                    </h4>
+                    <pre class="bg-white p-3 rounded-lg border border-sky-200 text-xs font-mono text-slate-700 overflow-x-auto whitespace-pre-wrap">Mã truyện + You are an expert at converting written stories into a single photorealistic image.
+... [Nội dung quy tắc phân tích và tạo ảnh nghệ thuật chân thực] ...
+Technical:
+- Aspect ratio 4:5
+- Clean white and blue color palette, strictly eliminate yellow/sepia tones.
+- Natural skin texture, beautify
+Output format:
+Return ONLY the final image. Do not explain anything.
+Bright, luminous skin tones and backgrounds; the subject always looks beautiful.
+An absolutely bright white color palette, minimizing black tones in the image.
+Story:
+[Nội dung mô tả truyện tự động lấy từ link]</pre>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 py-4 text-center text-xs text-slate-400">
+        StoryPrompt Studio • Hoạt động hoàn toàn cục bộ trên máy tính của bạn
+    </footer>
+
+    <!-- Toast Notification Element -->
+    <div id="toastNotification" class="fixed bottom-6 right-6 z-50 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <div class="bg-slate-900 text-white text-xs sm:text-sm font-medium px-4 py-3 rounded-xl shadow-xl flex items-center space-x-2">
+            <i id="toastIcon" data-lucide="check-circle" class="w-4 h-4 text-emerald-400"></i>
+            <span id="toastMessage">Thông báo</span>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script src="/static/app.js?v=3.0"></script>
+    <script>
+        lucide.createIcons();
+    </script>
+</body>
+</html>
+

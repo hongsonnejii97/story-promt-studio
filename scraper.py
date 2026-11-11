@@ -100,9 +100,9 @@ def find_chapter_one_url(main_url: str, soup: BeautifulSoup) -> str:
             
     return ""
 
-def extract_chapter_content(html: str, target_words: int = 500) -> str:
+def extract_chapter_content(html: str, target_words: int = 1000) -> str:
     """
-    Extracts the first ~500 words of chapter content cleanly, preserving paragraphs
+    Extracts the first ~1000 words of chapter content cleanly, preserving paragraphs
     and ending cleanly at sentence boundaries.
     """
     soup = BeautifulSoup(html, "html.parser")
@@ -169,9 +169,9 @@ def extract_chapter_content(html: str, target_words: int = 500) -> str:
             
     return full_text
 
-def get_story_description(url: str, auto_clean_ads: bool = True, target_words: int = 500) -> Dict[str, Any]:
+def get_story_description(url: str, auto_clean_ads: bool = True, target_words: int = 1000) -> Dict[str, Any]:
     """
-    Fetches ~500 words from Chapter 1 of the novel.
+    Fetches ~1000 words from Chapter 1 of the novel.
     If given an overview URL, automatically finds and navigates to Chapter 1.
     """
     url = url.strip()

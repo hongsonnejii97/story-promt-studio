@@ -38,7 +38,7 @@ class BatchRequest(BaseModel):
     template_override: Optional[str] = None
     header_format: Optional[str] = None
     story_format: Optional[str] = None
-    target_words: Optional[int] = 500
+    target_words: Optional[int] = 1000
 
 class AssembleRequest(BaseModel):
     code: str
@@ -172,7 +172,7 @@ def assemble_prompt_api(req: AssembleRequest):
     )
     return {"final_prompt": final_prompt}
 
-async def process_single_item(item: StoryItem, sem: asyncio.Semaphore, template: str, header_fmt: str, story_fmt: str, auto_clean: bool, target_words: int = 500):
+async def process_single_item(item: StoryItem, sem: asyncio.Semaphore, template: str, header_fmt: str, story_fmt: str, auto_clean: bool, target_words: int = 1000):
     async with sem:
         desc = (item.description or "").strip()
         success = True
@@ -228,7 +228,7 @@ async def generate_batch_api(req: BatchRequest):
     header_fmt = req.header_format if req.header_format is not None else settings.get("header_format", "{code}\n\n")
     story_fmt = req.story_format if req.story_format is not None else settings.get("story_format", "\n{story}")
     auto_clean = settings.get("auto_clean_ads", True)
-    target_words = req.target_words if req.target_words else 500
+    target_words = req.target_words if req.target_words else 1000
 
     sem = asyncio.Semaphore(5)
     tasks = [process_single_item(item, sem, template, header_fmt, story_fmt, auto_clean, target_words) for item in items]

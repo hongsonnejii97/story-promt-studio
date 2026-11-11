@@ -508,13 +508,13 @@ function renderResults() {
                 <div class="flex items-center justify-between">
                     <label class="text-[11px] font-semibold text-slate-600 uppercase tracking-wider flex items-center gap-1">
                         <i data-lucide="file-text" class="w-3 h-3 text-slate-400"></i>
-                        Nội Dung Chương 1 (~500 Chữ - Có Thể Sửa Trực Tiếp)
+                        Nội Dung Chương 1 (~1000 Chữ - Có Thể Sửa Trực Tiếp)
                     </label>
                     <span class="text-[10px] text-slate-400">Prompt tự động cập nhật tức thì</span>
                 </div>
                 <textarea rows="4" oninput="onDescriptionEdit(${idx}, this.value)"
                     class="w-full text-xs font-mono p-2.5 bg-white rounded-lg border border-slate-300 focus:ring-1 focus:ring-sky-500 outline-none leading-relaxed"
-                    placeholder="Nội dung khoảng 500 chữ ở Chương 1...">${escapeHtml(item.description || '')}</textarea>
+                    placeholder="Nội dung khoảng 1000 chữ ở Chương 1...">${escapeHtml(item.description || '')}</textarea>
             </div>
 
             <!-- Prompt Preview Container -->
